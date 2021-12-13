@@ -32,15 +32,18 @@ void prompt()
 	char cwd[1024];
     getcwd(cwd, sizeof(cwd));
 	
-	COLOR("\n┌──[", COLOR_GREEN);   // Prompt looks like this :
+	// Renkli ve working directory gösterecek şekilde prompt yazdırılıyor.
+
+	COLOR("\n┌──[", COLOR_GREEN);   // Prompt böyle gözükmekte :
 	COLOR(cwd, COLOR_B_BLUE_BR);	//
 	COLOR("]\n└─", COLOR_GREEN);	// ┌──[/home/brz/osHomework]
-	COLOR("sau", COLOR_B_WHITE);	// └─sau > {commands_here}
+	COLOR("sau", COLOR_B_WHITE);	// └─sau > {komutlar_buraya}
 	COLOR(" > ", COLOR_B_BLUE_BR);	
 }
 
 void runUserInput()
 {
+	// Kullanıcı girişi alınıyor.
 	char command[81];
 	fgets(command, sizeof(command), stdin);
 	command[strcspn(command, "\r\n")] = 0;
@@ -50,14 +53,14 @@ void runUserInput()
 
 	if(parsedCommand[0] != NULL) 
 	{
-		if(strcmp(parsedCommand[0], "exit") == 0)
+		if(strcmp(parsedCommand[0], "exit") == 0) // built-in exit komutu
 		{
 			printf("exit");
 			free(parsedCommand);
 			free(pidList);
 			exit(EXIT_SUCCESS);
 		}
-		else if(strcmp(parsedCommand[0], "cd") == 0)
+		else if(strcmp(parsedCommand[0], "cd") == 0) // built-in cd komutu
 		{
 			if(chdir(parsedCommand[1]) == 0)
 			{
@@ -79,15 +82,16 @@ void runUserInput()
 				}
 			}
 		}
-		else if(strcmp(parsedCommand[0], "showpid") == 0)
+		else if(strcmp(parsedCommand[0], "showpid") == 0) // built-in showpid komutu
 		{
 			for(int i = 0; i < pidCount; i++)
 			{
 				printf("%d\n", pidList[i]);
 			}
 		}
-		else
+		else 
 		{
+			// built-in olmayan fork ile calisacak komutlar calistiriliyor.
 			runCommand(parsedCommand);
 		}
 	}
@@ -95,6 +99,7 @@ void runUserInput()
 
 char** parseInput(char *command) 
 {
+	// Kullanıcı girişi parse ediliyor.
 	char** parsedArr = NULL;
 	int spaceCount = 0;
 
@@ -129,14 +134,14 @@ int runCommand(char** args)
 	pid_t child_pid = fork();
 	int child_status;
 
-	if(child_pid == 0) // Child
+	if(child_pid == 0) // Child Process
 	{
 		execvp(args[0], args);
 
         printErrorMessage("Komut icra edilemiyor.");
 		exit(EXIT_FAILURE);
 	}
-	else // Parent
+	else // Parent Process
 	{
 		do {
         	pid_t w = waitpid(child_pid, &child_status, WUNTRACED | WCONTINUED);
